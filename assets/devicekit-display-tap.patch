@@ -1,0 +1,64 @@
+diff --git a/DeviceKitTests/JSONRPC/Handlers/IOTap.swift b/DeviceKitTests/JSONRPC/Handlers/IOTap.swift
+index 59e755d..206e449 100644
+--- a/DeviceKitTests/JSONRPC/Handlers/IOTap.swift
++++ b/DeviceKitTests/JSONRPC/Handlers/IOTap.swift
+@@ -1,8 +1,12 @@
+ import os
++import XCTest
+ 
+ struct IOTapRequest: Codable {
+     let x: Float
+     let y: Float
++    let displayID: UInt64?
++    let nativeCoordinates: Bool?
++    let dryRun: Bool?
+ }
+ 
+ @MainActor
+@@ -18,10 +22,35 @@ struct IOTapMethodHandler: RPCMethodHandler {
+         let request = try decodeParams(IOTapRequest.self, from: params)
+ 
+         let geometry = OrientationGeometry.current()
+-        let point = geometry.touchPoint(for: CGPoint(x: CGFloat(request.x), y: CGFloat(request.y)))
++        let input = CGPoint(x: CGFloat(request.x), y: CGFloat(request.y))
++        let point = request.nativeCoordinates == true ? input : geometry.touchPoint(for: input)
++        let displayID = request.displayID ?? geometry.displayID
++        let screenIDs = XCUIScreen.screens.map { screen -> JSONValue in
++            guard screen.responds(to: NSSelectorFromString("displayID")),
++                  let value = screen.value(forKey: "displayID") as? NSNumber else {
++                return .string("unknown")
++            }
++            return .int(value.intValue)
++        }
++        let targetingAvailable = NSClassFromString("XCSynthesizedEventRecord")?
++            .instancesRespond(to: NSSelectorFromString("initWithName:displayID:interfaceOrientation:")) ?? false
++        let details: JSONValue = .object([
++            "success": .bool(true),
++            "executed": .bool(request.dryRun != true),
++            "screenIDs": .array(screenIDs),
++            "selectedDisplayID": .int(Int(displayID ?? 0)),
++            "displayTargetingAvailable": .bool(targetingAvailable),
++            "orientation": .int(geometry.orientation.rawValue),
++            "portraitSize": .string("\(geometry.portraitWidth)x\(geometry.portraitHeight)"),
++            "nativePoint": .string("\(point.x),\(point.y)")
++        ])
++        if request.dryRun == true { return details }
++        if displayID != nil && !targetingAvailable {
++            throw RPCMethodError.internalError("Explicit display targeting is unavailable")
++        }
+ 
+         do {
+-            let eventRecord = EventRecord(orientation: .portrait, displayID: geometry.displayID)
++            let eventRecord = EventRecord(orientation: .portrait, displayID: displayID)
+             _ = eventRecord.addPointerTouchEvent(
+                 at: point,
+                 touchUpAfter: nil
+@@ -30,7 +59,7 @@ struct IOTapMethodHandler: RPCMethodHandler {
+             try await RunnerDaemonProxy().synthesize(eventRecord: eventRecord)
+             let duration = Date().timeIntervalSince(start)
+             logger.info("Tapping took \(duration)")
+-            return .object(["success": .bool(true)])
++            return details
+         } catch {
+             logger.error("Error tapping: \(error)")
+             throw RPCMethodError.internalError("Error tapping point: \(error.localizedDescription)")

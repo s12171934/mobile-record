@@ -1,0 +1,4 @@
+interface:
+  display_name: "모바일 실측·녹화"
+  short_description: "실기기 네이티브 액션과 영상으로 모바일 시나리오를 검증합니다"
+  default_prompt: "$mobile-record로 실기기에서 시나리오 하나를 실행하고 영상과 판정 근거를 남겨줘."

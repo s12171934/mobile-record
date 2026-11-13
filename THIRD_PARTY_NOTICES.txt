@@ -1,0 +1,12 @@
+assets/devicekit-display-tap.patch modifies DeviceKit iOS:
+https://github.com/mobile-next/devicekit-ios
+Base revision: 929cc67
+
+Copyright 2025-2026 Mobile Next HQ, Inc.
+
+The patch includes and modifies portions of DeviceKit. Those portions and
+modifications are subject to the upstream Functional Source License,
+Version 1.1, ALv2 Future License. A copy is included in:
+assets/DEVICEKIT_LICENSE.txt
+
+DeviceKit itself is an external prerequisite and is not bundled here.
