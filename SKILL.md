@@ -5,7 +5,7 @@ description: 모바일 앱 화면을 네이티브 탭과 화면 키보드 키로
 
 # 모바일 실측
 
-**비어 있는 실기기를 먼저 쓰고, 없으면 에뮬레이터를 쓴다.** 시작 전에 `python3 "$SKILL/scripts/free_devices.py"`로 연결된 실기기와 점유 여부를 본다. 다른 세션의 러너·녹화 락이 잡혀 있거나 그 기기 ID를 인자로 든 프로세스(xcodebuild·adb -s 등)가 있으면 사용 중이다. `"free": true`인 기기가 있으면 그 기기로 실측한다. iOS는 아래 본문(DeviceKit)을, Android는 [에뮬레이터 안내](references/에뮬레이터.md)의 `adb -s <serial>` 명령을 쓰고, launch_runner를 거치지 않는 동안에는 `free_devices.py --hold <기기 ID>`를 별도 터미널 세션에 띄워 점유를 표시한다. 비어 있는 실기기가 없을 때만 iOS 시뮬레이터·Android 에뮬레이터를 쓴다. 다른 세션이 쓰는 기기를 빼앗거나 그 러너에 끼어들지 않는다. Mobile MCP는 쓰지 않는다.
+**비어 있는 실기기를 먼저 쓰고, 없으면 에뮬레이터를 쓴다.** 시작 전에 `python3 "$SKILL/scripts/free_devices.py"`로 연결된 실기기와 점유 여부를 본다. 다른 세션의 러너·녹화 락이 잡혀 있거나 그 기기 ID를 인자로 든 프로세스(xcodebuild·adb -s 등)가 있으면 사용 중이다. `"free": true`인 기기가 있으면 그 기기로 실측한다. 실기기 실측을 기다려야 하면 별도 터미널 세션에 `python3 "$SKILL/scripts/free_devices.py" --acquire ios|android|any --label <티켓 키>`를 띄운다 — 세션 공용 FIFO 대기열에 서서 기기가 풀리면 `{"acquired": …}`를 출력하고 그 기기를 점유한다. 끝나면 그 터미널에 `q`를 보내 다음 대기자에게 넘긴다. `--queue`는 대기 중인 세션을 보여 준다. iOS는 아래 본문(DeviceKit)을, Android는 [에뮬레이터 안내](references/에뮬레이터.md)의 `adb -s <serial>` 명령을 쓰고, launch_runner를 거치지 않는 동안에는 `free_devices.py --hold <기기 ID>`를 별도 터미널 세션에 띄워 점유를 표시한다. 비어 있는 실기기가 없을 때만 iOS 시뮬레이터·Android 에뮬레이터를 쓴다. 다른 세션이 쓰는 기기를 빼앗거나 그 러너에 끼어들지 않는다. Mobile MCP는 쓰지 않는다.
 
 **처음에는 에이전트가 직접 동작시키고, 자주 확인하는 흐름은 검증된 시나리오로 보관해 재사용한다.** 별도 관찰자가 기기 프레임을 녹화하며, 화면 이동·입력·복귀를 실제 표시 결과로 판정한다.
 
